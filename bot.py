@@ -2,28 +2,25 @@
 import config
 
 import discord
+from discord.ext import commands
 
 intents = discord.Intents.all()
 intents.message_content = True
 
-client = discord.Client(intents = intents)
+bot = commands.Bot(command_prefix="/",intents=intents)
 
 
-@client.event
+@bot.event
 async def on_ready():
-    print(f'We have logged in as {client.user}')
+    print(f'We have logged in as {bot.user}')
 
-@client.event
-async def on_message(message):
-    if message.author == client.user:
-        return
+@bot.command(name='hello')
+async def on_message(ctx):
+    await ctx.send('Hello!')
 
-    if message.content.startswith('$hello'):
-        await message.channel.send('Hello!')
-
-@client.event
+@bot.event
 async def on_member_join(member):
-    channel = client.get_channel(1073167438042120204)
+    channel = bot.get_channel(1073167438042120204)
     await channel.send("Welcome " + member.name)
 
-client.run(config.TOKEN)
+bot.run(config.TOKEN)
