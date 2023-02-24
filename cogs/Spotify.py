@@ -4,7 +4,7 @@ import requests
 import random
  #TODO: Alex you can work on your discord bot here
     #make sure every function has self as a parameter
-class News(commands.Cog):
+class Spotify(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
     
