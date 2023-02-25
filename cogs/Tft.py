@@ -2,27 +2,11 @@ from discord.ext import commands
 import discord
 import config
 from riotwatcher import TftWatcher
+from helpers import tfthelper
 
 watcher = TftWatcher(api_key=config.tft_key)
 
-class RegionView(discord.ui.View):
-    chosen = None
-    async def on_timeout(self) -> None:
-        # Step 2
-        for item in self.children:
-            item.disabled = True
 
-        # Step 3
-        await self.message.edit(view=self)
-
-    @discord.ui.button(label='EUN')
-    async def example_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message('Hello!', ephemeral=True)
-
-    @discord.ui.button(label="EUW")
-    async def second(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message('second!', ephemeral=True)
-    
 
 
 
@@ -34,22 +18,33 @@ class Tft(commands.Cog):
         self.bot = bot
         
     @commands.command()
-    async def player(self, ctx, region, *, player_name):
+    async def player(self, ctx, *, player_name):
         #todo: add message with buttons for region
-        region += "1"
-        data = watcher.summoner.by_name(region=region, summoner_name=player_name)
-        print(data)
-        embed = discord.Embed(title=player_name, url = None)
-        embed.set_thumbnail(url="http://ddragon.leagueoflegends.com/cdn/13.4.1/img/profileicon/{}.png".format(data["profileIconId"]))
-        embed.add_field(name="Summoner level:", value=str(data["summonerLevel"]))
-        rank_info = watcher.league.by_summoner(region=region, encrypted_summoner_id=data["id"])[0]
-        print(rank_info)
+        """ region += "1" #temp sol for popular regions"""
+        region = await tfthelper.region_selection(ctx)
+
+        summoner_data = watcher.summoner.by_name(region=region, summoner_name=player_name)
+        #print(summoner_data)
+        rank_info = watcher.league.by_summoner(region=region, encrypted_summoner_id=summoner_data["id"])[0]
+        #print(rank_info)
+
+        #create Embed for message output
+        embed = discord.Embed(title=player_name, url = None) 
+        embed.set_thumbnail(url="http://ddragon.leagueoflegends.com/cdn/13.4.1/img/profileicon/{}.png".format(summoner_data["profileIconId"]))
+        embed.add_field(name="Summoner level:", value=str(summoner_data["summonerLevel"]))
+        embed.add_field(name= "Region", value=(region[:-1]).upper())
         embed.add_field(name="Rank", value=rank_info["tier"] + " " + rank_info["rank"])
-        #todo: get image from the id http://ddragon.leagueoflegends.com/cdn/13.4.1/img/profileicon/685.png
+        #add as many fields as necessary
+
+        #TODO exception handling!!
+        
         await ctx.send(embed = embed)
         
-        
 
+    @commands.command()
+    async def reg(self, ctx):
+        chosen = await tfthelper.region_selection(ctx)        
+        await ctx.send("Looking for " + "None" + " in " + chosen)
 
     """
     @commands.command()
