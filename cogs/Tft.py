@@ -14,7 +14,7 @@ class Tft(commands.Cog):
     @commands.command()
     async def player(self, ctx, *, player_name):
         #todo: add message with buttons for region
-        """ region += "1" #temp sol for popular regions"""
+        """/player <playername> finds the stats of the player in a given region and will give you some information."""
         region = await tfthelper.region_selection(ctx)
 
         embed = discord.Embed(title=player_name, url = None) 
