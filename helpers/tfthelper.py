@@ -41,9 +41,6 @@ class RegionView(discord.ui.View):
         self.chosen = "na1"
         self.stop()
     
-
-    
-
 def get_summoner_from_id(watcher: TftWatcher, region, player_name):
     pass
 
