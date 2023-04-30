@@ -3,6 +3,7 @@ import discord
 import config
 from riotwatcher import TftWatcher, ApiError
 from helpers import tfthelper
+import requests
 
 watcher = TftWatcher(api_key=config.tft_key)
 
@@ -10,7 +11,11 @@ watcher = TftWatcher(api_key=config.tft_key)
 class Tft(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        
+        url =  "https://raw.communitydragon.org/latest/cdragon/tft/en_us.json"
+        response = requests.get(url)
+        self.data = response.json()
+    
+    
     @commands.command()
     async def player(self, ctx, *, player_name):
         #todo: add message with buttons for region
@@ -36,9 +41,31 @@ class Tft(commands.Cog):
             return
         #print(rank_info)
 
-        #TODO exception handling!!
         
         await ctx.send(embed = embed)
+
+    @commands.command()
+    async def fav_units(self, ctx, count, *, player):
+        res = {}
+        region = await tfthelper.region_selection(ctx)
+        try:
+            summoner = watcher.summoner.by_name(region=region, summoner_name=player)
+            match_history = watcher.match.by_puuid(region, summoner['puuid'], count=count)
+            for match in match_history:
+                match_info = watcher.match.by_id(region,match)
+                res = tfthelper.find_units_played(res, tfthelper.find_correct_info(match_info, summoner['puuid']))
+            temp = list(dict(sorted(res.items(), key = lambda x: x[1], reverse=True)).keys())[:10] #list of fav 10 units
+            t2 = tfthelper.convert_list(temp, self.data)
+            msg = ""
+            for unit in t2:
+                msg += unit[0] + ", "
+            await ctx.send("Your favourite units are: ")
+            await ctx.send(msg[:-2])
+        except ApiError as err:
+            await ctx.send(err)
+
+
+        
         
     """
     @commands.command()

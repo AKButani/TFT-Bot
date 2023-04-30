@@ -53,3 +53,26 @@ async def region_selection(ctx):
     view.message = await ctx.send("Choose the region", view=view)
     await view.wait()
     return view.chosen
+
+
+def find_correct_info(match_info, puuid):
+    for participant in match_info['info']['participants']:
+        if participant['puuid'] == puuid:
+            return participant
+
+def find_units_played(res: dict, info):
+    for unit in info["units"]:
+        res.setdefault(unit["character_id"], 0)
+        res[unit["character_id"]] += 1
+    return res
+
+def convert_unit_name(el, data):
+    for unit in data['sets']['8']['champions']:
+        if unit['apiName'] == el:
+            return (unit['name'], unit['icon'])
+
+def convert_list(res, data):
+    new_list = []
+    for el in res:
+        new_list.append(convert_unit_name(el, data))
+    return new_list
