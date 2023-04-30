@@ -4,6 +4,7 @@ import config
 from riotwatcher import TftWatcher, ApiError
 from helpers import tfthelper
 import requests
+from table2ascii import table2ascii as t2a, PresetStyle
 
 watcher = TftWatcher(api_key=config.tft_key)
 
@@ -45,7 +46,7 @@ class Tft(commands.Cog):
         await ctx.send(embed = embed)
 
     @commands.command()
-    async def fav_units(self, ctx, count, *, player):
+    async def data_units(self, ctx, count, *, player):
         res = {}
         region = await tfthelper.region_selection(ctx)
         try:
@@ -54,16 +55,26 @@ class Tft(commands.Cog):
             for match in match_history:
                 match_info = watcher.match.by_id(region,match)
                 res = tfthelper.find_units_played(res, tfthelper.find_correct_info(match_info, summoner['puuid']))
-            temp = list(dict(sorted(res.items(), key = lambda x: x[1], reverse=True)).keys())[:10] #list of fav 10 units
+            #temp = list(dict(sorted(res.items(), key = lambda x: x[1], reverse=True)).keys())[:10] #list of fav 10 units
+            temp = sorted(res.items(), key= lambda x: x[1][0], reverse=True)
             t2 = tfthelper.convert_list(temp, self.data)
+            """
             msg = ""
             for unit in t2:
                 msg += unit[0] + ", "
             await ctx.send("Your favourite units are: ")
             await ctx.send(msg[:-2])
+            """
+            output = t2a(header=["Unit", "Games", "Average Placement", "Top 4 %"],
+             body=t2[:10],
+             style=PresetStyle.minimalist)
+        
+            await ctx.send(f"```\n{output}```")
+
         except ApiError as err:
             await ctx.send(err)
 
+        #TODO: Add average placement, items, etc.
 
         
         

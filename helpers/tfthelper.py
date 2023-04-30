@@ -58,18 +58,25 @@ def find_correct_info(match_info, puuid):
             return participant
 
 def find_units_played(res: dict, info):
+    placement = info["placement"]
+    top_four = 1 if placement <=4 else 0
+    units_counted_already = []
     for unit in info["units"]:
-        res.setdefault(unit["character_id"], 0)
-        res[unit["character_id"]] += 1
+        if unit["character_id"] not in units_counted_already:
+            units_counted_already.append(unit["character_id"])
+            res.setdefault(unit["character_id"], (0,0,0))
+            res[unit["character_id"]] = (res[unit["character_id"]][0] + 1, res[unit["character_id"]][1] + placement, res[unit["character_id"]][2] + top_four)
     return res
 
 def convert_unit_name(el, data):
     for unit in data['sets']['8']['champions']:
         if unit['apiName'] == el:
-            return (unit['name'], unit['icon'])
+            return unit['name']
 
 def convert_list(res, data):
     new_list = []
     for el in res:
-        new_list.append(convert_unit_name(el, data))
+        name = convert_unit_name(el[0], data)
+        new_list.append([name, el[1][0], round((el[1][1]*1.0)/el[1][0],2), round(el[1][2]*100.0 /el[1][0],2)])
+        #name, number of games, avg placement, number of top 4s
     return new_list
