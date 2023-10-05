@@ -17,5 +17,7 @@ int main() {
         ptr[i] = i;
     }
 
+    free(ptr)
+
     return 0;
 }
